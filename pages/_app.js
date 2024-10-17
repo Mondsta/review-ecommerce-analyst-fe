@@ -15,10 +15,9 @@ import Navbar from "../components/Navbar";
 import { getToken } from "../utils/token";
 import { ThemeConfig } from "../themes";
 
-import PropTypes from 'prop-types';
-import { CacheProvider } from '@emotion/react';
-import createEmotionCache from '../utils/createEmotionCache';
-
+import PropTypes from "prop-types";
+import { CacheProvider } from "@emotion/react";
+import createEmotionCache from "../utils/createEmotionCache";
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -44,7 +43,12 @@ const Main = styled("main", {
   }),
 }));
 
-const MyApp = ({ Component, emotionCache = clientSideEmotionCache, pageProps, router }) => {
+const MyApp = ({
+  Component,
+  emotionCache = clientSideEmotionCache,
+  pageProps,
+  router,
+}) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -62,7 +66,8 @@ const MyApp = ({ Component, emotionCache = clientSideEmotionCache, pageProps, ro
             />
             <meta name="googlebot" content="noindex" />
             <meta name="robots" content="noindex" />
-            <title>React Next Base</title>
+            <title>E-commerce Review Analyst</title>
+            <link rel="icon" href="/favicon.ico" />
           </Head>
 
           <Provider store={store}>
