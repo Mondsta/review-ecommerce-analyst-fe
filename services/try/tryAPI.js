@@ -1,13 +1,13 @@
 import axios from "axios";
 import { getStorage } from "../../utils/storage";
 
-const api = axios.create({
+const Try = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_API_URL,
   timeout: 30000,
 });
 
-const getScrapeData = async () => {
-  return await api.post("/get_reviews", {
+const getScrapeData = async (data) => {
+  return await Try.post("/get_reviews", data, {
     headers: {
       Authorization: `${getStorage("access_token")}`,
     },
@@ -16,5 +16,7 @@ const getScrapeData = async () => {
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
+
+  // POST
   getScrapeData,
 };

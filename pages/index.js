@@ -12,33 +12,53 @@ import {
   TableHead,
   TableRow,
   Box,
+  Dialog,
+  DialogContent,
+  CircularProgress,
 } from "@mui/material";
 import PrivateRoutes from "../utils/privateRoutes";
+import useAlert from "../utils/alert";
+import API from "../services/try/tryAPI";
+import { isNull, isUndefined } from "lodash";
 
 const Home = () => {
-    const [url, setUrl] = useState("");
+  const { showAlert, renderAlert } = useAlert();
 
-    const [reviews, setReviews] = useState([]);
+  const [reviewUrl, setReviewUrl] = useState("");
 
-    // POST
-    async function mountGetScrapeData() {
-        
+  const [reviews, setReviews] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  // POST
+  async function mountGetScrapeData() {
+
+    setIsLoading(true);
+
+    var payload = {
+      url: reviewUrl,
     }
 
-    // Simulasi fungsi scraping data setelah input URL
-    const handleScrape = () => {
-    // Misal hasil scraping berupa array objek ulasan
-    const scrapedData = [
-      { user: "John Doe", review: "Great product!", rating: 5 },
-      {
-        user: "Jane Smith",
-        review: "Not bad, but could be better.",
-        rating: 3,
-      },
-      { user: "Tom Brown", review: "Terrible experience.", rating: 1 },
-    ];
-    setReviews(scrapedData);
-  };
+    try {
+      const GetScrapingData = await API.getScrapeData(payload);
+      const { reviews } = GetScrapingData.data;
+
+      console.log("Scrape Data", reviews);
+
+      if (isNull(reviews) || isUndefined(reviews)) {
+        setIsLoading(false);
+        setReviews([]);
+      } else {
+        setIsLoading(false);
+        setReviews(reviews);
+      }
+      
+    } catch (error) {
+      setIsLoading(false);
+      setReviews([]);
+      console.log("[ERROR][mountGetScrapeData]", error);
+    }
+  }
 
   return (
     <>
@@ -69,8 +89,8 @@ const Home = () => {
               fullWidth
               placeholder="Enter e-commerce URL..."
               variant="outlined"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              value={reviewUrl}
+              onChange={(e) => setReviewUrl(e.target.value)}
               sx={{
                 marginRight: 2,
                 backgroundColor: "#fff",
@@ -84,7 +104,7 @@ const Home = () => {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleScrape}
+              onClick={mountGetScrapeData}
               sx={{
                 padding: "10px 24px",
                 backgroundColor: "#007bff",
@@ -105,15 +125,15 @@ const Home = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                        <TableCell>Username</TableCell>
-                        <TableCell>Review</TableCell>
-                        <TableCell>Rating</TableCell>
+                      <TableCell>Username</TableCell>
+                      <TableCell>Review</TableCell>
+                      <TableCell>Rating</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {reviews.map((review, index) => (
                       <TableRow key={index}>
-                        <TableCell>{review.user}</TableCell>
+                        <TableCell>{review.username}</TableCell>
                         <TableCell>{review.review}</TableCell>
                         <TableCell>{review.rating}</TableCell>
                       </TableRow>
@@ -125,6 +145,21 @@ const Home = () => {
           )}
         </Grid>
       </Grid>
+      {/* MODAL LOADING */}
+      <Dialog fullWidth open={isLoading}>
+        <DialogContent>
+          <Grid container>
+            <Grid item xs></Grid>
+            <Grid item xs={8} sx={{ textAlign: "center" }}>
+              <Typography sx={{ mb: 1, mt: 1 }}>Please Wait</Typography>
+              <CircularProgress />
+            </Grid>
+            <Grid item xs></Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+      {/* ALERT NOTIFICATION */}
+      {renderAlert()}
     </>
   );
 };
