@@ -1,9 +1,8 @@
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import ListIcon from '@mui/icons-material/List';
 
 export const Routes = [
-  // {
-  //   path: "/",
-  //   menu: "Dashboard  ",
-  //   icon: <DashboardIcon />,
-  // },
+  {
+    path: "/",
+    icon: <ListIcon />,
+  },
 ];

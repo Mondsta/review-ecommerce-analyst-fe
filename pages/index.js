@@ -25,6 +25,7 @@ const Home = () => {
   const { showAlert, renderAlert } = useAlert();
 
   const [reviewUrl, setReviewUrl] = useState("");
+  const [urlError, setUrlError] = useState("");
 
   const [reviews, setReviews] = useState([]);
 
@@ -32,6 +33,12 @@ const Home = () => {
 
   // POST
   async function mountGetScrapeData() {
+    if (!isValidUrl(reviewUrl)) {
+        setUrlError("Link tidak valid. Silakan masukkan link Shopee atau Tokopedia.");
+        showAlert("error", "Link tidak valid");
+        return;
+    }
+    
     setIsLoading(true);
 
     var payload = {
@@ -58,9 +65,14 @@ const Home = () => {
     }
   }
 
+  const isValidUrl = (url) => {
+    const shopeeRegex = /^https:\/\/shopee\.co\.id\/.+$/;
+    const tokopediaRegex = /^https:\/\/www\.tokopedia\.com\/.+$/;
+    return shopeeRegex.test(url) || tokopediaRegex.test(url);
+  };
+
   return (
     <>
-      {/* Main Layout */}
       <Grid
         container
         justifyContent="center"
@@ -89,6 +101,8 @@ const Home = () => {
               variant="outlined"
               value={reviewUrl}
               onChange={(e) => setReviewUrl(e.target.value)}
+              error={Boolean(urlError)} // Tambahkan error prop jika ada pesan error
+              helperText={urlError} // Tampilkan pesan error
               sx={{
                 marginRight: 2,
                 backgroundColor: "#fff",
@@ -117,7 +131,7 @@ const Home = () => {
           {reviews.length > 0 && (
             <Box sx={{ marginTop: 4 }}>
               <Typography variant="h6" gutterBottom>
-                Scraped Reviews
+                Data Scraped Reviews
               </Typography>
               <TableContainer
                 component={Paper}
