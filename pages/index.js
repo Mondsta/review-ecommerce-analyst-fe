@@ -32,12 +32,11 @@ const Home = () => {
 
   // POST
   async function mountGetScrapeData() {
-
     setIsLoading(true);
 
     var payload = {
       url: reviewUrl,
-    }
+    };
 
     try {
       const GetScrapingData = await API.getScrapeData(payload);
@@ -52,7 +51,6 @@ const Home = () => {
         setIsLoading(false);
         setReviews(reviews);
       }
-      
     } catch (error) {
       setIsLoading(false);
       setReviews([]);
@@ -121,8 +119,13 @@ const Home = () => {
               <Typography variant="h6" gutterBottom>
                 Scraped Reviews
               </Typography>
-              <TableContainer component={Paper}>
-                <Table>
+              <TableContainer
+                component={Paper}
+                sx={{ maxHeight: 400, overflowY: "auto" }}
+              >
+                <Table stickyHeader>
+                  {" "}
+                  {/* Tambahkan stickyHeader jika ingin header tetap di atas saat scroll */}
                   <TableHead>
                     <TableRow>
                       <TableCell>Username</TableCell>
