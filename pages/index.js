@@ -129,13 +129,27 @@ const Home = () => {
 
           {/* Review Table */}
           {reviews.length > 0 && (
-            <Box sx={{ marginTop: 4 }}>
+            <Box>
               <Typography variant="h6" gutterBottom>
                 Data Scraped Reviews
               </Typography>
               <TableContainer
-                component={Paper}
-                sx={{ maxHeight: 400, overflowY: "auto" }}
+                  sx={{
+                    maxHeight: 400,
+                    overflowY: "auto",
+                    '&::-webkit-scrollbar': {
+                      width: '0.4em',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      background: '#f1f1f1',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: '#888',
+                    },
+                    '&::-webkit-scrollbar-thumb:hover': {
+                      background: '#555',
+                    },
+                  }}
               >
                 <Table stickyHeader>
                   {" "}
@@ -145,6 +159,7 @@ const Home = () => {
                       <TableCell>Username</TableCell>
                       <TableCell>Review</TableCell>
                       <TableCell>Rating</TableCell>
+                      <TableCell>Date</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -153,6 +168,7 @@ const Home = () => {
                         <TableCell>{review.username}</TableCell>
                         <TableCell>{review.review}</TableCell>
                         <TableCell>{review.rating}</TableCell>
+                        <TableCell>{review.review_time}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
