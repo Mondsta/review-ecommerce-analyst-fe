@@ -36,6 +36,7 @@ const Try = () => {
     if (!isValidUrl(reviewUrl)) {
         setUrlError("Link tidak valid. Silakan masukkan link Shopee atau Tokopedia.");
         showAlert("error", "Link tidak valid");
+        setReviews([]);
         return;
     }
     
