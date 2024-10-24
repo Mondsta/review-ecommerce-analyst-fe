@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import {
   IconButton,
   List,
@@ -8,12 +7,9 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
-  Typography,
-  Box,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
-import FaviconLogo from "../public/static/logo/favicon.ico";
 import { useRouter } from "next/router";
 import { getToken, deleteToken } from "../utils/token";
 import { Routes } from "./Routes";

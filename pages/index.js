@@ -1,200 +1,82 @@
-import React, { useState } from "react";
-import {
-  TextField,
-  Button,
-  Grid,
-  Paper,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Box,
-  Dialog,
-  DialogContent,
-  CircularProgress,
-} from "@mui/material";
-import PrivateRoutes from "../utils/privateRoutes";
-import useAlert from "../utils/alert";
-import API from "../services/try/tryAPI";
-import { isNull, isUndefined } from "lodash";
+import Navbar from "../components/Navbar";
+import Banner from "../components/Banner";
+import Features from "../components/Features";
+import Footer from "../components/Footer";
+import { Grid, Box, Typography, Button } from "@mui/material";
+import { useRouter } from "next/router";
 
-const Home = () => {
-  const { showAlert, renderAlert } = useAlert();
+const Introduction = () => {
 
-  const [reviewUrl, setReviewUrl] = useState("");
-  const [urlError, setUrlError] = useState("");
+  const router = useRouter();
 
-  const [reviews, setReviews] = useState([]);
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  // POST
-  async function mountGetScrapeData() {
-    if (!isValidUrl(reviewUrl)) {
-        setUrlError("Link tidak valid. Silakan masukkan link Shopee atau Tokopedia.");
-        showAlert("error", "Link tidak valid");
-        return;
-    }
-    
-    setIsLoading(true);
-
-    var payload = {
-      url: reviewUrl,
-    };
-
-    try {
-      const GetScrapingData = await API.getScrapeData(payload);
-      const { reviews } = GetScrapingData.data;
-
-      console.log("Scrape Data", reviews);
-
-      if (isNull(reviews) || isUndefined(reviews)) {
-        setIsLoading(false);
-        setReviews([]);
-      } else {
-        setIsLoading(false);
-        setReviews(reviews);
-      }
-    } catch (error) {
-      setIsLoading(false);
-      setReviews([]);
-      console.log("[ERROR][mountGetScrapeData]", error);
-    }
-  }
-
-  const isValidUrl = (url) => {
-    const shopeeRegex = /^https:\/\/shopee\.co\.id\/.+$/;
-    const tokopediaRegex = /^https:\/\/www\.tokopedia\.com\/.+$/;
-    return shopeeRegex.test(url) || tokopediaRegex.test(url);
+  const handleTryClick = () => {
+    router.push("/try");
   };
 
   return (
-    <>
-      <Grid
-        container
-        justifyContent="center"
-        alignItems="center"
-        sx={{ height: "100vh" }}
-      >
-        {/* Input Field Area */}
-        <Grid item xs={6}>
-          <Box
-            component={Paper}
-            elevation={3}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100vh",
+        textAlign: "center",
+        bgcolor: "black",
+        color: "text.primary",
+        px: 3,
+      }}
+    >
+      <Grid container spacing={2} sx={{ maxWidth: "lg", margin: "0 auto" }}>
+        <Grid item xs={12}>
+          <Typography variant="h6" color="white" gutterBottom>
+            2 October, 2024
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="h4" fontWeight="bold" color="white" gutterBottom>
+            Introducing E-commerce Anomaly Reviews Analyst
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            variant="contained"
+            alignItems="center"
+            color="primary"
+            size="large"
+            onClick={handleTryClick}
             sx={{
-              padding: 2,
-              display: "flex",
-              alignItems: "center",
-              width: "100%",
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              bgcolor: "#f6f6f6",
+              textTransform: "none",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              px: 4,
+              py: 1.5,
             }}
           >
-            <TextField
-              fullWidth
-              placeholder="Enter e-commerce URL..."
-              variant="outlined"
-              value={reviewUrl}
-              onChange={(e) => setReviewUrl(e.target.value)}
-              error={Boolean(urlError)} // Tambahkan error prop jika ada pesan error
-              helperText={urlError} // Tampilkan pesan error
-              sx={{
-                marginRight: 2,
-                backgroundColor: "#fff",
-                borderRadius: 1,
-                "& .MuiOutlinedInput-root": {
-                  paddingRight: 2,
-                  paddingLeft: 2,
-                },
-              }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={mountGetScrapeData}
-              sx={{
-                padding: "10px 24px",
-                backgroundColor: "#007bff",
-                textTransform: "none",
-              }}
-            >
-              Scrape Data
-            </Button>
-          </Box>
-
-          {/* Review Table */}
-          {reviews.length > 0 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Data Scraped Reviews
-              </Typography>
-              <TableContainer
-                  sx={{
-                    maxHeight: 400,
-                    overflowY: "auto",
-                    '&::-webkit-scrollbar': {
-                      width: '0.4em',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      background: '#f1f1f1',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: '#888',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                      background: '#555',
-                    },
-                  }}
-              >
-                <Table stickyHeader>
-                  {" "}
-                  {/* Tambahkan stickyHeader jika ingin header tetap di atas saat scroll */}
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Username</TableCell>
-                      <TableCell>Review</TableCell>
-                      <TableCell>Rating</TableCell>
-                      <TableCell>Date</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {reviews.map((review, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{review.username}</TableCell>
-                        <TableCell>{review.review}</TableCell>
-                        <TableCell>{review.rating}</TableCell>
-                        <TableCell>{review.review_time}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          )}
+            Try Application
+          </Button>
         </Grid>
       </Grid>
-      {/* MODAL LOADING */}
-      <Dialog fullWidth open={isLoading}>
-        <DialogContent>
-          <Grid container>
-            <Grid item xs></Grid>
-            <Grid item xs={8} sx={{ textAlign: "center" }}>
-              <Typography sx={{ mb: 1, mt: 1 }}>Please Wait</Typography>
-              <CircularProgress />
-            </Grid>
-            <Grid item xs></Grid>
-          </Grid>
-        </DialogContent>
-      </Dialog>
-      {/* ALERT NOTIFICATION */}
-      {renderAlert()}
-    </>
+    </Box>
   );
 };
 
-export default PrivateRoutes(Home);
+export default function Home() {
+  return (
+    <>
+      <Navbar />
+      <Introduction />
+      <Banner />
+      <Features />
+      <Footer />
+    </>
+  );
+}

@@ -24,16 +24,16 @@ const clientSideEmotionCache = createEmotionCache();
 const Main = styled("main", {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
-  padding: 3,
+  padding: 0, // Set padding to 0
   minHeight: "100vh",
-  backgroundColor: "#F5F5F5;",
+  backgroundColor: "#F5F5F5", // Background color for content
   flexGrow: 1,
   overflow: "hidden",
   transition: theme.transitions.create("margin", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
-  marginLeft: (theme) => `-${theme.mixins.drawerWidth}px`,
+  marginLeft: `-${theme.spacing(30)}`, // Assuming a 240px sidebar width
   ...(open && {
     transition: theme.transitions.create("margin", {
       easing: theme.transitions.easing.easeOut,
@@ -50,10 +50,18 @@ const MyApp = ({
   router,
 }) => {
   const [mounted, setMounted] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prevOpen) => !prevOpen);
+  };
+
+  // This ensures the code only runs on client-side (for token checks)
+  const isAuthenticated = typeof window !== "undefined" && getToken("token");
 
   return (
     mounted && (
@@ -73,15 +81,15 @@ const MyApp = ({
           <Provider store={store}>
             <ThemeConfig>
               <Toaster position="top-center" reverseOrder={false} gutter={8} />
-              {router.pathname === "/login" ||
-              (typeof window !== "undefined" && !getToken("token")) ? (
+              {/* Render the login page if the path is "/login" or if the user is not authenticated */}
+              {router.pathname === "/login" || !isAuthenticated ? (
                 <Component {...pageProps} />
               ) : (
-                <Box display={"flex"}>
-                  <Sidebar />
+                <Box display="flex">
+                  {/* <Sidebar open={isSidebarOpen} /> */}
                   <Box sx={{ width: "100%" }}>
-                    <Navbar />
-                    <Main>
+                    {/* <Navbar toggleSidebar={toggleSidebar} /> */}
+                    <Main open={isSidebarOpen}> {/* Pass open state */}
                       <LocalizationProvider dateAdapter={AdapterDayjs}>
                         <Component {...pageProps} />
                       </LocalizationProvider>
