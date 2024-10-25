@@ -15,11 +15,13 @@ import {
   Dialog,
   DialogContent,
   CircularProgress,
+  Drawer,
 } from "@mui/material";
 import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
 import { isNull, isUndefined } from "lodash";
+import { List as ListIcon, Menu as MenuIcon } from "@mui/icons-material";
 
 const Try = () => {
   const { showAlert, renderAlert } = useAlert();
@@ -30,16 +32,19 @@ const Try = () => {
   const [reviews, setReviews] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // POST
   async function mountGetScrapeData() {
     if (!isValidUrl(reviewUrl)) {
-        setUrlError("Link tidak valid. Silakan masukkan link Shopee atau Tokopedia.");
-        showAlert("error", "Link tidak valid");
-        setReviews([]);
-        return;
+      setUrlError(
+        "Link tidak valid. Silakan masukkan link Shopee atau Tokopedia.",
+      );
+      showAlert("error", "Link tidak valid");
+      setReviews([]);
+      return;
     }
-    
+
     setIsLoading(true);
 
     var payload = {
@@ -55,6 +60,7 @@ const Try = () => {
       if (isNull(reviews) || isUndefined(reviews)) {
         setIsLoading(false);
         setReviews([]);
+        setReviewUrl([]);
       } else {
         setIsLoading(false);
         setReviews(reviews);
@@ -76,6 +82,37 @@ const Try = () => {
 
   return (
     <>
+      {/* Sidebar */}
+      <Drawer open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+        <Box
+          sx={{
+            width: 250,
+            p: 2,
+            bgcolor: "#1f1f1f",
+            color: "#fff",
+            height: "100%",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Menu
+          </Typography>
+          <Button
+            startIcon={<ListIcon />}
+            fullWidth
+            sx={{ color: "#fff", justifyContent: "flex-start" }}
+          >
+            Dashboard
+          </Button>
+          <Button
+            startIcon={<ListIcon />}
+            fullWidth
+            sx={{ color: "#fff", justifyContent: "flex-start" }}
+          >
+            Logout
+          </Button>
+        </Box>
+      </Drawer>
+
       <Grid
         container
         justifyContent="center"
@@ -137,22 +174,22 @@ const Try = () => {
                 Data Scraped Reviews
               </Typography>
               <TableContainer
-                  sx={{
-                    maxHeight: 400,
-                    overflowY: "auto",
-                    '&::-webkit-scrollbar': {
-                      width: '0.4em',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      background: '#f1f1f1',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: '#888',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                      background: '#555',
-                    },
-                  }}
+                sx={{
+                  maxHeight: 400,
+                  overflowY: "auto",
+                  "&::-webkit-scrollbar": {
+                    width: "0.4em",
+                  },
+                  "&::-webkit-scrollbar-track": {
+                    background: "#f1f1f1",
+                  },
+                  "&::-webkit-scrollbar-thumb": {
+                    backgroundColor: "#888",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    background: "#555",
+                  },
+                }}
               >
                 <Table stickyHeader>
                   {" "}
