@@ -29,8 +29,11 @@ const Try = () => {
 
     const [reviewUrl, setReviewUrl] = useState("");
     const [urlError, setUrlError] = useState("");
+
     const [reviews, setReviews] = useState([]);
+
     const [isLoading, setIsLoading] = useState(false);
+
     const [filterType, setFilterType] = useState("shopee"); // New state for filter type
 
     // POST
@@ -52,7 +55,7 @@ const Try = () => {
             console.log("Scrape Data Shopee", reviews);
 
             setIsLoading(false);
-            setReviews(reviews || []);
+            setReviews(reviews);
             setReviewUrl("");
         } catch (error) {
             setIsLoading(false);
@@ -79,7 +82,7 @@ const Try = () => {
             console.log("Scrape Data Tokopedia", reviews);
 
             setIsLoading(false);
-            setReviews(reviews || []);
+            setReviews(reviews);
             setReviewUrl("");
         } catch (error) {
             setIsLoading(false);
@@ -174,24 +177,12 @@ const Try = () => {
                     <Typography variant="h6" gutterBottom>
                         Data Scraped Reviews
                     </Typography>
-                    <TableContainer
-                        sx={{
-                            maxHeight: 400,
-                            overflowY: "auto",
-                            "&::-webkit-scrollbar": {
-                                width: "0.4em",
-                            },
-                            "&::-webkit-scrollbar-track": {
-                                background: "#f1f1f1",
-                            },
-                            "&::-webkit-scrollbar-thumb": {
-                                backgroundColor: "#888",
-                            },
-                            "&::-webkit-scrollbar-thumb:hover": {
-                                background: "#555",
-                            },
-                        }}
-                    >
+
+                    {/* Display Total Reviews */}
+                    <Typography variant="subtitle1" sx={{ mt: 2 }}>
+                        Total Reviews: {reviews.length}
+                    </Typography>
+                    <TableContainer>
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>

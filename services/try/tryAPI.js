@@ -7,7 +7,7 @@ const Try = axios.create({
 });
 
 const getScrapeDataShopee = async (data) => {
-    return await Try.post("/get_reviews", data, {
+    return await Try.post("/get_shopee_reviews", data, {
         headers: {
             Authorization: `${getStorage("access_token")}`,
         },
@@ -15,7 +15,7 @@ const getScrapeDataShopee = async (data) => {
 };
 
 const getScrapeDataTokopedia = async (data) => {
-    return await Try.post("/get_reviews", data, {
+    return await Try.post("/get_tokopedia_reviews", data, {
         headers: {
             Authorization: `${getStorage("access_token")}`,
         },
