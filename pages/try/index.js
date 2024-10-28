@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     TextField,
     Button,
@@ -21,8 +21,6 @@ import {
 import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
-import { isNull, isUndefined } from "lodash";
-import { List as ListIcon } from "@mui/icons-material";
 
 const Try = () => {
     const { showAlert, renderAlert } = useAlert();
@@ -34,7 +32,7 @@ const Try = () => {
 
     const [isLoading, setIsLoading] = useState(false);
 
-    const [filterType, setFilterType] = useState("shopee"); // New state for filter type
+    const [filterType, setFilterType] = useState("shopee");
 
     // POST
     async function mountGetScrapeDataShopee() {
@@ -60,6 +58,7 @@ const Try = () => {
         } catch (error) {
             setIsLoading(false);
             setReviews([]);
+            showAlert("error", "Silakan coba kembali");
             console.log("[ERROR][mountGetScrapeDataShopee]", error);
         }
     }
@@ -87,7 +86,45 @@ const Try = () => {
         } catch (error) {
             setIsLoading(false);
             setReviews([]);
+            showAlert("error", "Silakan coba kembali");
             console.log("[ERROR][mountGetScrapeDataTokopedia]", error);
+        }
+    }
+
+    async function mountCleanReviewsData() {
+        if (!reviews || reviews.length === 0) {
+            showAlert("error", "Tidak ada data review untuk diproses.");
+            return;
+        }
+
+        setIsLoading(true);
+
+        var payload = {
+            product_name: "No product name found",
+            total_reviews: reviews.length,
+            reviews: reviews.map((review) => ({
+                rating: review.rating,
+                review: review.review,
+                review_time: review.review_time,
+                username: review.username,
+            })),
+        };
+
+        try {
+            const cleanedDataResponse = await API.cleanReviewsData(payload);
+            const cleanedReviews = cleanedDataResponse.data.cleaned_reviews;
+            console.log("Cleaned Reviews Data", cleanedReviews);
+
+            setIsLoading(false);
+            setReviews(cleanedReviews);
+            showAlert("success", "Data berhasil diproses.");
+        } catch (error) {
+            setIsLoading(false);
+            showAlert(
+                "error",
+                "Terjadi kesalahan saat memproses data. Silakan coba kembali.",
+            );
+            console.log("[ERROR][mountCleanReviewsData]", error);
         }
     }
 
@@ -111,49 +148,85 @@ const Try = () => {
         }
     };
 
+    const clearReviewData = () => {
+        setReviews([]);
+        showAlert("success", "Data reviews berhasil dihapus");
+    };
+
+    // Reset urlError if reviewUrl or filterType changes
+    useEffect(() => {
+        if (isValidUrl(reviewUrl, filterType)) {
+            setUrlError("");
+        }
+    }, [reviewUrl, filterType]);
+
     return (
         <Box sx={{ width: "100%", p: 2 }}>
-            <Typography>Review anomaly detection</Typography>
+            <Typography>E-commerce Anomaly Review Detection</Typography>
 
             <Paper sx={{ p: 3 }}>
                 <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={12} sm={2}>
                         <Select
                             value={filterType}
                             onChange={(e) => setFilterType(e.target.value)}
                             variant="outlined"
+                            fullWidth
                             sx={{
-                                width: "100%",
-                                marginRight: { xs: 0, sm: 2 },
+                                backgroundColor: "#fff",
+                                borderRadius: 3,
+                                height: 48,
                             }}
                         >
                             <MenuItem value="shopee">Shopee</MenuItem>
                             <MenuItem value="tokopedia">Tokopedia</MenuItem>
                         </Select>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                        <TextField
-                            fullWidth
-                            placeholder="Enter e-commerce URL..."
-                            variant="outlined"
-                            value={reviewUrl}
-                            onChange={(e) => setReviewUrl(e.target.value)}
-                            onKeyDown={handleKeyDownSendLink}
-                            error={Boolean(urlError)}
-                            helperText={urlError}
-                            sx={{
-                                backgroundColor: "#fff",
-                                borderRadius: 1,
-                                "& .MuiOutlinedInput-root": {
-                                    paddingRight: 2,
-                                    paddingLeft: 2,
-                                },
-                            }}
-                        />
+
+                    <Grid item xs={12} sm={8}>
+                        <Box sx={{ position: "relative", width: "100%" }}>
+                            <TextField
+                                fullWidth
+                                placeholder="Enter e-commerce URL..."
+                                variant="outlined"
+                                value={reviewUrl}
+                                onChange={(e) => setReviewUrl(e.target.value)}
+                                onKeyDown={handleKeyDownSendLink}
+                                error={Boolean(urlError)}
+                                sx={{
+                                    backgroundColor: "#fff",
+                                    borderRadius: 3,
+                                    "& .MuiOutlinedInput-root": {
+                                        paddingLeft: 2,
+                                        paddingRight: 2,
+                                        height: 48,
+                                        borderRadius: 3,
+                                    },
+                                    "& .MuiInputBase-input": {
+                                        padding: "12px 14px",
+                                        borderRadius: 3,
+                                    },
+                                }}
+                            />
+                            {urlError && (
+                                <Typography
+                                    variant="body2"
+                                    color="error"
+                                    sx={{
+                                        position: "absolute",
+                                        top: "100%",
+                                        left: 0,
+                                        mt: "4px",
+                                    }}
+                                >
+                                    {urlError}
+                                </Typography>
+                            )}
+                        </Box>
                     </Grid>
-                    <Grid item xs={12} sm={3}>
+
+                    <Grid item xs={12} sm={2}>
                         <Button
-                            fullWidth
                             variant="contained"
                             color="primary"
                             onClick={
@@ -161,10 +234,13 @@ const Try = () => {
                                     ? mountGetScrapeDataShopee
                                     : mountGetScrapeDataTokopedia
                             }
+                            fullWidth
                             sx={{
-                                padding: "10px 24px",
                                 backgroundColor: "#007bff",
                                 textTransform: "none",
+                                height: 48,
+                                maxWidth: "100%",
+                                borderRadius: 3,
                             }}
                         >
                             Scrape Data
@@ -172,13 +248,49 @@ const Try = () => {
                     </Grid>
                 </Grid>
 
+                {/* Conditionally Render Clear Data Button */}
+                {reviews.length > 0 && (
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                        <Grid item xs={12} sm={6}>
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={clearReviewData}
+                                fullWidth
+                                sx={{
+                                    textTransform: "none",
+                                    height: 48,
+                                    maxWidth: "100%",
+                                    borderRadius: 3,
+                                }}
+                            >
+                                Clear Data
+                            </Button>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                onClick={mountCleanReviewsData}
+                                fullWidth
+                                sx={{
+                                    textTransform: "none",
+                                    height: 48,
+                                    maxWidth: "100%",
+                                    borderRadius: 3,
+                                }}
+                            >
+                                Data Processing
+                            </Button>
+                        </Grid>
+                    </Grid>
+                )}
+
                 {/* Review Table */}
                 <Box mt={4}>
                     <Typography variant="h6" gutterBottom>
                         Data Scraped Reviews
                     </Typography>
-
-                    {/* Display Total Reviews */}
                     <Typography variant="subtitle1" sx={{ mt: 2 }}>
                         Total Reviews: {reviews.length}
                     </Typography>

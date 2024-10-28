@@ -3,9 +3,10 @@ import { getStorage } from "../../utils/storage";
 
 const Try = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_API_URL,
-    timeout: 30000,
+    timeout: 60000,
 });
 
+// POST
 const getScrapeDataShopee = async (data) => {
     return await Try.post("/get_shopee_reviews", data, {
         headers: {
@@ -22,9 +23,18 @@ const getScrapeDataTokopedia = async (data) => {
     });
 };
 
+const cleanReviewsData = async (data) => {
+    return await Try.post("/clean_review_data", data, {
+        headers: {
+            Authorization: `${getStorage("access_token")}`,
+        },
+    });
+};
+
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
     // POST
     getScrapeDataShopee,
     getScrapeDataTokopedia,
+    cleanReviewsData,
 };
