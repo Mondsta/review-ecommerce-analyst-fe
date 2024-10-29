@@ -112,6 +112,7 @@ const Try = () => {
 
         try {
             const cleanedDataResponse = await API.cleanReviewsData(payload);
+            console.log("Response from API:", cleanedDataResponse);
             const cleanedReviews = cleanedDataResponse.data.cleaned_reviews;
             console.log("Cleaned Reviews Data", cleanedReviews);
 
@@ -150,6 +151,8 @@ const Try = () => {
 
     const clearReviewData = () => {
         setReviews([]);
+        setReviewUrl("");
+        setUrlError("");
         showAlert("success", "Data reviews berhasil dihapus");
     };
 
@@ -159,6 +162,10 @@ const Try = () => {
             setUrlError("");
         }
     }, [reviewUrl, filterType]);
+
+    // useEffect(() => {
+    //     console.log("Updated Reviews State after clean:", reviews);
+    //  }, [reviews]);
 
     return (
         <Box sx={{ width: "100%", p: 2 }}>
@@ -249,7 +256,7 @@ const Try = () => {
                 </Grid>
 
                 {/* Conditionally Render Clear Data Button */}
-                {reviews.length > 0 && (
+                {Array.isArray(reviews) && reviews.length > 0 && (
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid item xs={12} sm={6}>
                             <Button
@@ -270,7 +277,7 @@ const Try = () => {
                         <Grid item xs={12} sm={6}>
                             <Button
                                 variant="contained"
-                                color="secondary"
+                                color="primary"
                                 onClick={mountCleanReviewsData}
                                 fullWidth
                                 sx={{
@@ -292,7 +299,7 @@ const Try = () => {
                         Data Scraped Reviews
                     </Typography>
                     <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                        Total Reviews: {reviews.length}
+                        Total Reviews: <b>{reviews ? reviews.length : 0}</b>
                     </Typography>
                     <TableContainer>
                         <Table stickyHeader>
@@ -305,7 +312,8 @@ const Try = () => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {reviews.length > 0 ? (
+                                {Array.isArray(reviews) &&
+                                reviews.length > 0 ? (
                                     reviews.map((review, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
