@@ -31,10 +31,19 @@ const cleanReviewsData = async (data) => {
     });
 };
 
+const analyzeAnomalyReview = async (data) => {
+    return await Try.post("/analyze_anomalies", data, {
+        headers: {
+            Authorization: `${getStorage("access_token")}`,
+        },
+    });
+};
+
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
     // POST
     getScrapeDataShopee,
     getScrapeDataTokopedia,
     cleanReviewsData,
+    analyzeAnomalyReview,
 };

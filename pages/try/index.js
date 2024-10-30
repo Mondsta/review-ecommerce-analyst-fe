@@ -17,10 +17,13 @@ import {
     CircularProgress,
     Select,
     MenuItem,
+    DialogTitle,
+    DialogActions,
 } from "@mui/material";
 import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
+import * as XLSX from "xlsx";
 
 const Try = () => {
     const { showAlert, renderAlert } = useAlert();
@@ -31,6 +34,7 @@ const Try = () => {
     const [reviews, setReviews] = useState([]);
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isProcessed, setIsProcessed] = useState(false);
 
     const [filterType, setFilterType] = useState("shopee");
 
@@ -55,6 +59,7 @@ const Try = () => {
             setIsLoading(false);
             setReviews(reviews);
             setReviewUrl("");
+            setIsProcessed(false);
         } catch (error) {
             setIsLoading(false);
             setReviews([]);
@@ -83,6 +88,7 @@ const Try = () => {
             setIsLoading(false);
             setReviews(reviews);
             setReviewUrl("");
+            setIsProcessed(false);
         } catch (error) {
             setIsLoading(false);
             setReviews([]);
@@ -101,23 +107,24 @@ const Try = () => {
 
         var payload = {
             product_name: "No product name found",
-            total_reviews: reviews.length,
             reviews: reviews.map((review) => ({
                 rating: review.rating,
                 review: review.review,
                 review_time: review.review_time,
                 username: review.username,
             })),
+            total_reviews: reviews.length,
         };
 
         try {
             const cleanedDataResponse = await API.cleanReviewsData(payload);
             console.log("Response from API:", cleanedDataResponse);
-            const cleanedReviews = cleanedDataResponse.data.cleaned_reviews;
+            const cleanedReviews = cleanedDataResponse.data;
             console.log("Cleaned Reviews Data", cleanedReviews);
 
             setIsLoading(false);
-            setReviews(cleanedReviews);
+            setReviews(cleanedReviews.reviews);
+            setIsProcessed(true);
             showAlert("success", "Data berhasil diproses.");
         } catch (error) {
             setIsLoading(false);
@@ -128,6 +135,26 @@ const Try = () => {
             console.log("[ERROR][mountCleanReviewsData]", error);
         }
     }
+
+    // Download file Excel and CSV
+    const downloadExcel = (data, fileName) => {
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Reviews");
+        XLSX.writeFile(workbook, `${fileName}.xlsx`);
+    };
+
+    const downloadCSV = (data, fileName) => {
+        const csv = data.map((row) => Object.values(row).join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${fileName}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     // Update validation to check the filter type
     const isValidUrl = (url, type) => {
@@ -153,6 +180,7 @@ const Try = () => {
         setReviews([]);
         setReviewUrl("");
         setUrlError("");
+        setIsProcessed(false);
         showAlert("success", "Data reviews berhasil dihapus");
     };
 
@@ -163,15 +191,27 @@ const Try = () => {
         }
     }, [reviewUrl, filterType]);
 
-    // useEffect(() => {
-    //     console.log("Updated Reviews State after clean:", reviews);
-    //  }, [reviews]);
-
     return (
-        <Box sx={{ width: "100%", p: 2 }}>
-            <Typography>E-commerce Anomaly Review Detection</Typography>
+        <Box
+            sx={{
+                width: "100%",
+                p: 2,
+                backgroundColor: "#f5f5f5",
+                minHeight: "100vh",
+            }}
+        >
+            <Typography
+                variant="h5"
+                sx={{
+                    fontWeight: "bold",
+                    color: filterType === "shopee" ? "#ff5722" : "#2DBE60",
+                    mb: 2,
+                }}
+            >
+                E-commerce Anomaly Review Detection
+            </Typography>
 
-            <Paper sx={{ p: 3 }}>
+            <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3 }}>
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} sm={2}>
                         <Select
@@ -181,8 +221,15 @@ const Try = () => {
                             fullWidth
                             sx={{
                                 backgroundColor: "#fff",
+                                transition: "background-color 0.3s ease",
                                 borderRadius: 3,
                                 height: 48,
+                                "& .MuiOutlinedInput-root": {
+                                    color:
+                                        filterType === "shopee"
+                                            ? "#ff5722"
+                                            : "#2DBE60",
+                                },
                             }}
                         >
                             <MenuItem value="shopee">Shopee</MenuItem>
@@ -208,6 +255,12 @@ const Try = () => {
                                         paddingRight: 2,
                                         height: 48,
                                         borderRadius: 3,
+                                        "&:hover": {
+                                            borderColor:
+                                                filterType === "shopee"
+                                                    ? "#ff5722"
+                                                    : "#2DBE60",
+                                        },
                                     },
                                     "& .MuiInputBase-input": {
                                         padding: "12px 14px",
@@ -235,7 +288,6 @@ const Try = () => {
                     <Grid item xs={12} sm={2}>
                         <Button
                             variant="contained"
-                            color="primary"
                             onClick={
                                 filterType === "shopee"
                                     ? mountGetScrapeDataShopee
@@ -243,11 +295,21 @@ const Try = () => {
                             }
                             fullWidth
                             sx={{
-                                backgroundColor: "#007bff",
+                                backgroundColor:
+                                    filterType === "shopee"
+                                        ? "#ff5722"
+                                        : "#2DBE60",
+                                color: "#fff",
                                 textTransform: "none",
                                 height: 48,
                                 maxWidth: "100%",
                                 borderRadius: 3,
+                                "&:hover": {
+                                    backgroundColor:
+                                        filterType === "shopee"
+                                            ? "#e64a19"
+                                            : "#24984a",
+                                },
                             }}
                         >
                             Scrape Data
@@ -255,20 +317,32 @@ const Try = () => {
                     </Grid>
                 </Grid>
 
-                {/* Conditionally Render Clear Data Button */}
                 {Array.isArray(reviews) && reviews.length > 0 && (
                     <Grid container spacing={2} sx={{ mt: 2 }}>
                         <Grid item xs={12} sm={6}>
                             <Button
                                 variant="outlined"
-                                color="primary"
                                 onClick={clearReviewData}
                                 fullWidth
                                 sx={{
+                                    borderColor:
+                                        filterType === "shopee"
+                                            ? "#ff5722"
+                                            : "#2DBE60",
+                                    color:
+                                        filterType === "shopee"
+                                            ? "#ff5722"
+                                            : "#2DBE60",
                                     textTransform: "none",
                                     height: 48,
                                     maxWidth: "100%",
                                     borderRadius: 3,
+                                    "&:hover": {
+                                        backgroundColor:
+                                            filterType === "shopee"
+                                                ? "#ffccbc"
+                                                : "#a5e6c8",
+                                    },
                                 }}
                             >
                                 Clear Data
@@ -277,14 +351,23 @@ const Try = () => {
                         <Grid item xs={12} sm={6}>
                             <Button
                                 variant="contained"
-                                color="primary"
                                 onClick={mountCleanReviewsData}
                                 fullWidth
                                 sx={{
+                                    backgroundColor:
+                                        filterType === "shopee"
+                                            ? "#ff5722"
+                                            : "#2DBE60",
                                     textTransform: "none",
                                     height: 48,
                                     maxWidth: "100%",
                                     borderRadius: 3,
+                                    "&:hover": {
+                                        backgroundColor:
+                                            filterType === "shopee"
+                                                ? "#e64a19"
+                                                : "#24984a",
+                                    },
                                 }}
                             >
                                 Data Processing
@@ -293,22 +376,41 @@ const Try = () => {
                     </Grid>
                 )}
 
-                {/* Review Table */}
                 <Box mt={4}>
-                    <Typography variant="h6" gutterBottom>
-                        Data Scraped Reviews
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            color:
+                                filterType === "shopee" ? "#ff5722" : "#2DBE60",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        {isProcessed
+                            ? "Processed Reviews Data"
+                            : "Data Scraped Reviews"}
                     </Typography>
                     <Typography variant="subtitle1" sx={{ mt: 2 }}>
                         Total Reviews: <b>{reviews ? reviews.length : 0}</b>
                     </Typography>
-                    <TableContainer>
-                        <Table stickyHeader>
+                    <TableContainer
+                        sx={{ mt: 2, borderRadius: 4, boxShadow: 1 }}
+                    >
+                        <Table>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Username</TableCell>
-                                    <TableCell>Review</TableCell>
-                                    <TableCell>Rating</TableCell>
-                                    <TableCell>Date</TableCell>
+                                    <TableCell>
+                                        <b>Username</b>
+                                    </TableCell>
+                                    <TableCell>
+                                        <b>Review</b>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <b>Rating</b>
+                                    </TableCell>
+                                    <TableCell>
+                                        <b>Date</b>
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -320,9 +422,18 @@ const Try = () => {
                                                 {review.username}
                                             </TableCell>
                                             <TableCell>
-                                                {review.review}
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        maxWidth: "250px",
+                                                        wordBreak: "break-word",
+                                                        whiteSpace: "pre-wrap",
+                                                    }}
+                                                >
+                                                    {review.review}
+                                                </Typography>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell align="center">
                                                 {review.rating}
                                             </TableCell>
                                             <TableCell>
@@ -341,26 +452,75 @@ const Try = () => {
                         </Table>
                     </TableContainer>
                 </Box>
-            </Paper>
 
-            {/* MODAL LOADING */}
-            <Dialog fullWidth open={isLoading}>
-                <DialogContent>
-                    <Grid container>
-                        <Grid item xs></Grid>
-                        <Grid item xs={8} sx={{ textAlign: "center" }}>
-                            <Typography sx={{ mb: 1, mt: 1 }}>
-                                Please Wait
-                            </Typography>
-                            <CircularProgress />
+                {/* Download Buttons */}
+                {isProcessed && (
+                    <Grid container spacing={2} sx={{ mt: 2 }}>
+                        <Grid item xs={12} sm={6}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() =>
+                                    downloadExcel(reviews, "cleaned_reviews")
+                                }
+                                fullWidth
+                                sx={{
+                                    textTransform: "none",
+                                    height: 48,
+                                    maxWidth: "100%",
+                                    borderRadius: 3,
+                                }}
+                            >
+                                Download Excel
+                            </Button>
                         </Grid>
-                        <Grid item xs></Grid>
+                        <Grid item xs={12} sm={6}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={() =>
+                                    downloadCSV(reviews, "cleaned_reviews")
+                                }
+                                fullWidth
+                                sx={{
+                                    textTransform: "none",
+                                    height: 48,
+                                    maxWidth: "100%",
+                                    borderRadius: 3,
+                                }}
+                            >
+                                Download CSV
+                            </Button>
+                        </Grid>
                     </Grid>
-                </DialogContent>
-            </Dialog>
+                )}
 
-            {/* ALERT NOTIFICATION */}
-            {renderAlert()}
+                {/* Modal Loading */}
+                <Dialog fullWidth open={isLoading}>
+                    <DialogContent>
+                        <Grid
+                            container
+                            justifyContent="center"
+                            alignItems="center"
+                        >
+                            <Grid item xs={12} sx={{ textAlign: "center" }}>
+                                <Typography
+                                    sx={{ mb: 1, mt: 1, fontWeight: "bold" }}
+                                >
+                                    Please Wait
+                                </Typography>
+                                <CircularProgress
+                                    color={
+                                        filterType === "shopee"
+                                            ? "secondary"
+                                            : "primary"
+                                    }
+                                />
+                            </Grid>
+                        </Grid>
+                    </DialogContent>
+                </Dialog>
+            </Paper>
         </Box>
     );
 };

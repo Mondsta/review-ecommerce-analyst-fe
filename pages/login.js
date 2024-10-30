@@ -68,7 +68,7 @@ const Login = () => {
       setToken("token", "jwtToken");
       // const postLoginData = await api.loginApi(loginValue);
       // setToken("token", postLoginData.data.data.token);
-      router.replace("/");
+      router.replace("/try");
     } catch (error) {
       displayToast("error", "Failed to login");
     }
