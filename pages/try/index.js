@@ -30,6 +30,8 @@ const Try = () => {
 
     const [reviewUrl, setReviewUrl] = useState("");
     const [urlError, setUrlError] = useState("");
+    const [productName, setProductName] = useState("");
+    const [productImage, setProductImage] = useState("");
 
     const [reviews, setReviews] = useState([]);
 
@@ -53,12 +55,16 @@ const Try = () => {
         try {
             const GetScrapingDataShopee =
                 await API.getScrapeDataShopee(payload);
-            const { reviews } = GetScrapingDataShopee.data;
+            const { productName, productImage, reviews } =
+                GetScrapingDataShopee.data;
             console.log("Scrape Data Shopee", reviews);
+            console.log("Shopee API response:", GetScrapingDataShopee.data);
 
             setIsLoading(false);
             setReviews(reviews);
-            setReviewUrl("");
+            setProductName(productName);
+            setProductImage(productImage);
+            setReviewUrl(reviewUrl);
             setIsProcessed(false);
         } catch (error) {
             setIsLoading(false);
@@ -87,7 +93,7 @@ const Try = () => {
 
             setIsLoading(false);
             setReviews(reviews);
-            setReviewUrl("");
+            setReviewUrl(reviewUrl);
             setIsProcessed(false);
         } catch (error) {
             setIsLoading(false);
@@ -106,7 +112,8 @@ const Try = () => {
         setIsLoading(true);
 
         var payload = {
-            product_name: "No product name found",
+            product_name: productName,
+            product_image: productImage,
             reviews: reviews.map((review) => ({
                 rating: review.rating,
                 review: review.review,
@@ -178,6 +185,8 @@ const Try = () => {
 
     const clearReviewData = () => {
         setReviews([]);
+        setProductName("");
+        setProductImage("");
         setReviewUrl("");
         setUrlError("");
         setIsProcessed(false);
@@ -390,9 +399,94 @@ const Try = () => {
                             ? "Processed Reviews Data"
                             : "Data Scraped Reviews"}
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                        Total Reviews: <b>{reviews ? reviews.length : 0}</b>
-                    </Typography>
+                    <Typography>Product Name: {productName}</Typography>
+
+                    {/* Button Row for Total Reviews and Download Buttons */}
+                    {isProcessed && (
+                        <Grid
+                            container
+                            spacing={2}
+                            sx={{ mt: 2, alignItems: "center" }}
+                        >
+                            <Grid item xs={6}>
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{ fontSize: "0.875rem" }}
+                                >
+                                    Total Reviews:{" "}
+                                    <b>{reviews ? reviews.length : 0}</b>
+                                </Typography>
+                            </Grid>
+
+                            {/* Download Buttons */}
+                            <Grid
+                                item
+                                xs={6}
+                                container
+                                spacing={2}
+                                justifyContent="flex-end"
+                            >
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() =>
+                                            downloadExcel(
+                                                reviews,
+                                                "cleaned_reviews",
+                                            )
+                                        }
+                                        sx={{
+                                            backgroundColor:
+                                                filterType === "shopee"
+                                                    ? "#ff5722"
+                                                    : "#2DBE60",
+                                            color: "#ffffff",
+                                            textTransform: "none",
+                                            height: 36, // Reduced height
+                                            borderRadius: 3,
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    filterType === "shopee"
+                                                        ? "#ffccbc"
+                                                        : "#a5e6c8",
+                                            },
+                                        }}
+                                    >
+                                        Download Excel
+                                    </Button>
+                                </Grid>
+                                <Grid item>
+                                    <Button
+                                        variant="contained"
+                                        onClick={() =>
+                                            downloadCSV(
+                                                reviews,
+                                                "cleaned_reviews",
+                                            )
+                                        }
+                                        sx={{
+                                            backgroundColor:
+                                                filterType === "shopee"
+                                                    ? "#ff5722"
+                                                    : "#2DBE60",
+                                            color: "#ffffff",
+                                            textTransform: "none",
+                                            height: 36, // Reduced height
+                                            borderRadius: 3,
+                                            "&:hover": {
+                                                backgroundColor:
+                                                    filterType === "shopee"
+                                                        ? "#ffccbc"
+                                                        : "#a5e6c8",
+                                            },
+                                        }}
+                                    >
+                                        Download CSV
+                                    </Button>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    )}
                     <TableContainer
                         sx={{ mt: 2, borderRadius: 4, boxShadow: 1 }}
                     >
@@ -452,48 +546,6 @@ const Try = () => {
                         </Table>
                     </TableContainer>
                 </Box>
-
-                {/* Download Buttons */}
-                {isProcessed && (
-                    <Grid container spacing={2} sx={{ mt: 2 }}>
-                        <Grid item xs={12} sm={6}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() =>
-                                    downloadExcel(reviews, "cleaned_reviews")
-                                }
-                                fullWidth
-                                sx={{
-                                    textTransform: "none",
-                                    height: 48,
-                                    maxWidth: "100%",
-                                    borderRadius: 3,
-                                }}
-                            >
-                                Download Excel
-                            </Button>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={() =>
-                                    downloadCSV(reviews, "cleaned_reviews")
-                                }
-                                fullWidth
-                                sx={{
-                                    textTransform: "none",
-                                    height: 48,
-                                    maxWidth: "100%",
-                                    borderRadius: 3,
-                                }}
-                            >
-                                Download CSV
-                            </Button>
-                        </Grid>
-                    </Grid>
-                )}
 
                 {/* Modal Loading */}
                 <Dialog fullWidth open={isLoading}>
