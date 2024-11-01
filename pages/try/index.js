@@ -562,11 +562,7 @@ const Try = () => {
                                     Please Wait
                                 </Typography>
                                 <CircularProgress
-                                    color={
-                                        filterType === "shopee"
-                                            ? "secondary"
-                                            : "primary"
-                                    }
+                                    color="primary"
                                 />
                             </Grid>
                         </Grid>
