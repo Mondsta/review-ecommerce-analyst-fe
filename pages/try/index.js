@@ -24,6 +24,7 @@ import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
 import * as XLSX from "xlsx";
+import { Image } from "@mui/icons-material";
 
 const Try = () => {
     const { showAlert, renderAlert } = useAlert();
@@ -55,15 +56,15 @@ const Try = () => {
         try {
             const GetScrapingDataShopee =
                 await API.getScrapeDataShopee(payload);
-            const { productName, productImage, reviews } =
+            const { product_name, product_image, reviews } =
                 GetScrapingDataShopee.data;
             console.log("Scrape Data Shopee", reviews);
             console.log("Shopee API response:", GetScrapingDataShopee.data);
 
             setIsLoading(false);
             setReviews(reviews);
-            setProductName(productName);
-            setProductImage(productImage);
+            setProductName(product_name);
+            setProductImage(product_image);
             setReviewUrl(reviewUrl);
             setIsProcessed(false);
         } catch (error) {
@@ -93,6 +94,8 @@ const Try = () => {
 
             setIsLoading(false);
             setReviews(reviews);
+            setProductName(product_name);
+            setProductImage(product_image);
             setReviewUrl(reviewUrl);
             setIsProcessed(false);
         } catch (error) {
@@ -140,6 +143,47 @@ const Try = () => {
                 "Terjadi kesalahan saat memproses data. Silakan coba kembali.",
             );
             console.log("[ERROR][mountCleanReviewsData]", error);
+        }
+    }
+
+    async function mountAnalyzeAnomalyReview() {
+        if (!reviews || reviews.length === 0) {
+            showAlert("error", "Tidak ada data review untuk diproses.");
+            return;
+        }
+
+        setIsLoading(true);
+
+        var payload = {
+            product_name: productName,
+            product_image: productImage,
+            reviews: reviews.map((review) => ({
+                rating: review.rating,
+                review: review.review,
+                review_time: review.review_time,
+                username: review.username,
+            })),
+            total_reviews: reviews.length,
+        };
+
+        try {
+            const analyzeAnomalyReviews =
+                await API.analyzeAnomalyReview(payload);
+            console.log("Response from API:", analyzeAnomalyReviews);
+            const anomalyReview = analyzeAnomalyReviews.data;
+            console.log("Cleaned Reviews Data", anomalyReview);
+
+            setIsLoading(false);
+            setReviews(anomalyReview);
+            setIsProcessed(true);
+            showAlert("success", "Data berhasil diproses.");
+        } catch (error) {
+            setIsLoading(false);
+            showAlert(
+                "error",
+                "Terjadi kesalahan saat memproses data. Silakan coba kembali.",
+            );
+            console.log("[ERROR][mountAnalyzeAnomalyReview]", error);
         }
     }
 
@@ -399,7 +443,33 @@ const Try = () => {
                             ? "Processed Reviews Data"
                             : "Data Scraped Reviews"}
                     </Typography>
+
+                    {/* Product Name */}
                     <Typography>Product Name: {productName}</Typography>
+
+                    {/* Product Image */}
+                    {productImage && (
+                        <Box
+                            sx={{
+                                width: "200px",
+                                height: "200px",
+                                overflow: "hidden",
+                                borderRadius: 2,
+                                boxShadow: 2,
+                                mr: 2,
+                            }}
+                        >
+                            <img
+                                src={`https://cf.shopee.co.id/file/${productImage}`}
+                                alt="productImage"
+                                style={{
+                                    width: "100%",
+                                    height: "auto",
+                                    objectFit: "cover",
+                                }}
+                            />
+                        </Box>
+                    )}
 
                     {/* Button Row for Total Reviews and Download Buttons */}
                     {isProcessed && (
@@ -561,9 +631,7 @@ const Try = () => {
                                 >
                                     Please Wait
                                 </Typography>
-                                <CircularProgress
-                                    color="primary"
-                                />
+                                <CircularProgress color="primary" />
                             </Grid>
                         </Grid>
                     </DialogContent>
