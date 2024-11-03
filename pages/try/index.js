@@ -17,14 +17,11 @@ import {
     CircularProgress,
     Select,
     MenuItem,
-    DialogTitle,
-    DialogActions,
 } from "@mui/material";
 import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
 import * as XLSX from "xlsx";
-import { Image } from "@mui/icons-material";
 
 const Try = () => {
     const { showAlert, renderAlert } = useAlert();
@@ -38,6 +35,7 @@ const Try = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isProcessed, setIsProcessed] = useState(false);
+    const [isAnalyzed, setIsAnalyzed] = useState(false);
 
     const [filterType, setFilterType] = useState("shopee");
 
@@ -66,7 +64,8 @@ const Try = () => {
             setProductName(product_name);
             setProductImage(product_image);
             setReviewUrl(reviewUrl);
-            setIsProcessed(false);
+            setIsProcessed(true); 
+            setIsAnalyzed(false);
         } catch (error) {
             setIsLoading(false);
             setReviews([]);
@@ -135,6 +134,7 @@ const Try = () => {
             setIsLoading(false);
             setReviews(cleanedReviews.reviews);
             setIsProcessed(true);
+            setIsAnalyzed(true);
             showAlert("success", "Data berhasil diproses.");
         } catch (error) {
             setIsLoading(false);
@@ -227,6 +227,13 @@ const Try = () => {
         }
     };
 
+    const handleDetectAnomalyClick = () => {
+        const newTab = window.open();
+        newTab.onload = () => {
+            mountAnalyzeAnomalyReview();
+        };
+    };
+
     const clearReviewData = () => {
         setReviews([]);
         setProductName("");
@@ -234,6 +241,7 @@ const Try = () => {
         setReviewUrl("");
         setUrlError("");
         setIsProcessed(false);
+        setIsAnalyzed(false);
         showAlert("success", "Data reviews berhasil dihapus");
     };
 
@@ -401,30 +409,57 @@ const Try = () => {
                                 Clear Data
                             </Button>
                         </Grid>
+
                         <Grid item xs={12} sm={6}>
-                            <Button
-                                variant="contained"
-                                onClick={mountCleanReviewsData}
-                                fullWidth
-                                sx={{
-                                    backgroundColor:
-                                        filterType === "shopee"
-                                            ? "#ff5722"
-                                            : "#2DBE60",
-                                    textTransform: "none",
-                                    height: 48,
-                                    maxWidth: "100%",
-                                    borderRadius: 3,
-                                    "&:hover": {
+                            {isAnalyzed ? (
+                                <Button
+                                    variant="contained"
+                                    onClick={handleDetectAnomalyClick}
+                                    fullWidth
+                                    sx={{
                                         backgroundColor:
                                             filterType === "shopee"
-                                                ? "#e64a19"
-                                                : "#24984a",
-                                    },
-                                }}
-                            >
-                                Data Processing
-                            </Button>
+                                                ? "#ff5722"
+                                                : "#2DBE60",
+                                        textTransform: "none",
+                                        height: 48,
+                                        maxWidth: "100%",
+                                        borderRadius: 3,
+                                        "&:hover": {
+                                            backgroundColor:
+                                                filterType === "shopee"
+                                                    ? "#e64a19"
+                                                    : "#24984a",
+                                        },
+                                    }}
+                                >
+                                    Detect Anomaly Reviews
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    onClick={mountCleanReviewsData}
+                                    fullWidth
+                                    sx={{
+                                        backgroundColor:
+                                            filterType === "shopee"
+                                                ? "#ff5722"
+                                                : "#2DBE60",
+                                        textTransform: "none",
+                                        height: 48,
+                                        maxWidth: "100%",
+                                        borderRadius: 3,
+                                        "&:hover": {
+                                            backgroundColor:
+                                                filterType === "shopee"
+                                                    ? "#e64a19"
+                                                    : "#24984a",
+                                        },
+                                    }}
+                                >
+                                    Data Processing
+                                </Button>
+                            )}
                         </Grid>
                     </Grid>
                 )}
@@ -471,6 +506,15 @@ const Try = () => {
                         </Box>
                     )}
 
+                    <Grid item xs={6}>
+                        <Typography
+                            variant="subtitle1"
+                            sx={{ fontSize: "0.875rem" }}
+                        >
+                            Total Reviews: <b>{reviews ? reviews.length : 0}</b>
+                        </Typography>
+                    </Grid>
+
                     {/* Button Row for Total Reviews and Download Buttons */}
                     {isProcessed && (
                         <Grid
@@ -479,13 +523,13 @@ const Try = () => {
                             sx={{ mt: 2, alignItems: "center" }}
                         >
                             <Grid item xs={6}>
-                                <Typography
+                                {/* <Typography
                                     variant="subtitle1"
                                     sx={{ fontSize: "0.875rem" }}
                                 >
                                     Total Reviews:{" "}
                                     <b>{reviews ? reviews.length : 0}</b>
-                                </Typography>
+                                </Typography> */}
                             </Grid>
 
                             {/* Download Buttons */}
