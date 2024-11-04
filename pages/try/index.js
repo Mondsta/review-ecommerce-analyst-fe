@@ -22,6 +22,7 @@ import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
 import API from "../../services/try/tryAPI";
 import * as XLSX from "xlsx";
+import { setStorage } from "../../utils/storage";
 
 const Try = () => {
     const { showAlert, renderAlert } = useAlert();
@@ -64,7 +65,7 @@ const Try = () => {
             setProductName(product_name);
             setProductImage(product_image);
             setReviewUrl(reviewUrl);
-            setIsProcessed(true); 
+            setIsProcessed(true);
             setIsAnalyzed(false);
         } catch (error) {
             setIsLoading(false);
@@ -152,9 +153,7 @@ const Try = () => {
             return;
         }
 
-        setIsLoading(true);
-
-        var payload = {
+        const payload = {
             product_name: productName,
             product_image: productImage,
             reviews: reviews.map((review) => ({
@@ -166,25 +165,12 @@ const Try = () => {
             total_reviews: reviews.length,
         };
 
-        try {
-            const analyzeAnomalyReviews =
-                await API.analyzeAnomalyReview(payload);
-            console.log("Response from API:", analyzeAnomalyReviews);
-            const anomalyReview = analyzeAnomalyReviews.data;
-            console.log("Cleaned Reviews Data", anomalyReview);
+        // Store the payload in localStorage
+        localStorage.setItem("analyzePayload", JSON.stringify(payload));
+        setStorage("payload", JSON.stringify(payload));
 
-            setIsLoading(false);
-            setReviews(anomalyReview);
-            setIsProcessed(true);
-            showAlert("success", "Data berhasil diproses.");
-        } catch (error) {
-            setIsLoading(false);
-            showAlert(
-                "error",
-                "Terjadi kesalahan saat memproses data. Silakan coba kembali.",
-            );
-            console.log("[ERROR][mountAnalyzeAnomalyReview]", error);
-        }
+        // Open a new tab with the detail page URL
+        window.open(`/try/detail`, "_blank");
     }
 
     // Download file Excel and CSV
@@ -227,11 +213,8 @@ const Try = () => {
         }
     };
 
-    const handleDetectAnomalyClick = () => {
-        const newTab = window.open();
-        newTab.onload = () => {
-            mountAnalyzeAnomalyReview();
-        };
+    const handleDetectAnomalyClick = async () => {
+        await mountAnalyzeAnomalyReview();
     };
 
     const clearReviewData = () => {
@@ -522,15 +505,7 @@ const Try = () => {
                             spacing={2}
                             sx={{ mt: 2, alignItems: "center" }}
                         >
-                            <Grid item xs={6}>
-                                {/* <Typography
-                                    variant="subtitle1"
-                                    sx={{ fontSize: "0.875rem" }}
-                                >
-                                    Total Reviews:{" "}
-                                    <b>{reviews ? reviews.length : 0}</b>
-                                </Typography> */}
-                            </Grid>
+                            <Grid item xs={6}></Grid>
 
                             {/* Download Buttons */}
                             <Grid
