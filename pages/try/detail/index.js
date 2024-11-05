@@ -91,6 +91,7 @@ const DetailPage = ({ anomalyData }) => {
                                 boxShadow: 2,
                             }}
                         >
+                            {/* eslint-disable-next-line */}
                             <img
                                 src={`https://cf.shopee.co.id/file/${productData.product_image}`}
                                 alt="Product"

@@ -477,6 +477,7 @@ const Try = () => {
                                 mr: 2,
                             }}
                         >
+                            {/* eslint-disable-next-line */}
                             <img
                                 src={`https://cf.shopee.co.id/file/${productImage}`}
                                 alt="productImage"
