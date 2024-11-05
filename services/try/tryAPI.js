@@ -3,7 +3,7 @@ import { getStorage } from "../../utils/storage";
 
 const Try = axios.create({
     baseURL: process.env.NEXT_PUBLIC_BASE_API_URL,
-    timeout: 60000,
+    timeout: 120000,
 });
 
 // POST

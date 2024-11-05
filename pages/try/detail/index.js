@@ -155,7 +155,7 @@ const DetailPage = ({ anomalyData }) => {
                                 </Typography>
                                 <Divider sx={{ my: 2 }} />
                                 <Typography>{anomaly.review}</Typography>
-                                <Typography
+                                {/* <Typography
                                     color="textSecondary"
                                     sx={{ mt: 1 }}
                                 >
@@ -163,7 +163,7 @@ const DetailPage = ({ anomalyData }) => {
                                     {anomaly.sentiment_polarity?.toFixed(2)} |
                                     Sentiment Subjectivity:{" "}
                                     {anomaly.sentiment_subjectivity?.toFixed(2)}
-                                </Typography>
+                                </Typography> */}
                                 {anomaly.anomaly && (
                                     <Box
                                         sx={{
