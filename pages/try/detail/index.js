@@ -4,6 +4,7 @@ import {
     CircularProgress,
     Dialog,
     DialogContent,
+    DialogActions,
     Grid,
     Paper,
     Typography,
@@ -24,12 +25,15 @@ const DetailPage = ({ anomalyData }) => {
         product_name: "",
         total_reviews: 0,
         total_anomalies: 0,
+        accuracy: 0,
+        classification_report: "",
+        confusion_matrix: [],
         ...anomalyData,
     });
+    const [isDialogOpen, setIsDialogOpen] = useState(false); // State for additional info dialog
 
     const mountAnalyzeAnomalyReview = async (payload) => {
         setIsLoading(true);
-
         try {
             const { data } = await API.analyzeAnomalyReview(payload);
             setAnomaliesData(data.anomalies || []);
@@ -38,6 +42,9 @@ const DetailPage = ({ anomalyData }) => {
                 product_name: data.product_name,
                 total_reviews: data.total_reviews,
                 total_anomalies: data.total_anomalies,
+                accuracy: data.accuracy,
+                classification_report: data.classification_report,
+                confusion_matrix: data.confusion_matrix,
             });
         } catch (error) {
             console.error("Error analyzing reviews:", error);
@@ -51,10 +58,6 @@ const DetailPage = ({ anomalyData }) => {
             const storedPayload = localStorage.getItem("analyzePayload");
             if (storedPayload) {
                 const parsedPayload = JSON.parse(storedPayload);
-                console.log(
-                    "Payload retrieved from localStorage:",
-                    parsedPayload,
-                );
                 setProductData(parsedPayload);
                 localStorage.removeItem("analyzePayload");
                 mountAnalyzeAnomalyReview(parsedPayload);
@@ -103,7 +106,6 @@ const DetailPage = ({ anomalyData }) => {
                             />
                         </Box>
                     </Grid>
-
                     <Grid item xs={12} md={9}>
                         <Typography variant="h6" fontWeight="bold">
                             {productData.product_name}
@@ -115,6 +117,18 @@ const DetailPage = ({ anomalyData }) => {
                             Total Anomalies:{" "}
                             <b>{productData.total_anomalies}</b>
                         </Typography>
+                        <Typography color="textSecondary" sx={{ mt: 1 }}>
+                            Accuracy:{" "}
+                            <b>{(productData.accuracy * 100).toFixed(2)}%</b>
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            sx={{ mt: 2, backgroundColor: "#ff5722" }}
+                            onClick={() => setIsDialogOpen(true)}
+                        >
+                            View Analysis Report
+                        </Button>
                     </Grid>
                 </Grid>
             </Paper>
@@ -136,9 +150,10 @@ const DetailPage = ({ anomalyData }) => {
                                     p: 2,
                                     borderRadius: 3,
                                     boxShadow: 1,
-                                    backgroundColor: anomaly.anomaly
-                                        ? "#ffebee"
-                                        : "#e8f5e9",
+                                    backgroundColor:
+                                        anomaly.rating >= 4
+                                            ? "#e8f5e9"
+                                            : "#ffebee",
                                 }}
                             >
                                 <Typography
@@ -156,27 +171,20 @@ const DetailPage = ({ anomalyData }) => {
                                 </Typography>
                                 <Divider sx={{ my: 2 }} />
                                 <Typography>{anomaly.review}</Typography>
-                                {/* <Typography
-                                    color="textSecondary"
-                                    sx={{ mt: 1 }}
-                                >
-                                    Sentiment Polarity:{" "}
-                                    {anomaly.sentiment_polarity?.toFixed(2)} |
-                                    Sentiment Subjectivity:{" "}
-                                    {anomaly.sentiment_subjectivity?.toFixed(2)}
-                                </Typography> */}
                                 {anomaly.anomaly && (
                                     <Box
                                         sx={{
-                                            mt: 2,
                                             p: 2,
-                                            backgroundColor: "#ffcdd2",
                                             borderRadius: 2,
+                                            boxShadow: 1,
+                                            backgroundColor:
+                                                anomaly.rating >= 4
+                                                    ? "#c8f7cc"
+                                                    : "#ffcdd2",
                                         }}
                                     >
                                         <Typography
                                             variant="body2"
-                                            color="error"
                                             fontWeight="bold"
                                         >
                                             Anomaly Detected:
@@ -196,6 +204,45 @@ const DetailPage = ({ anomalyData }) => {
                 )}
             </Paper>
 
+            <Dialog
+                open={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                fullWidth
+            >
+                <DialogContent>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom>
+                        Analysis Report
+                    </Typography>
+                    <Typography sx={{ mt: 2 }}>
+                        Accuracy: {(productData.accuracy * 100).toFixed(2)}%
+                    </Typography>
+                    <Typography
+                        variant="subtitle1"
+                        sx={{ mt: 2 }}
+                        fontWeight="bold"
+                    >
+                        Classification Report
+                    </Typography>
+                    <pre
+                        style={{
+                            whiteSpace: "pre-wrap",
+                            wordWrap: "break-word",
+                        }}
+                    >
+                        {productData.classification_report}
+                    </pre>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setIsDialogOpen(false)}
+                        color="primary"
+                        sx={{ color: "#ff5722" }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <Dialog fullWidth open={isLoading}>
                 <DialogContent>
                     <Grid container justifyContent="center" alignItems="center">
@@ -214,9 +261,8 @@ const DetailPage = ({ anomalyData }) => {
     );
 };
 
-// Server-side data fetching for Next.js
 DetailPage.getInitialProps = async () => {
-    return { anomalyData: null }; // Initialize with null for client-side fetching if necessary
+    return { anomalyData: null };
 };
 
 export default DetailPage;
