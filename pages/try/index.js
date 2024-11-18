@@ -277,7 +277,7 @@ const Try = () => {
                             }}
                         >
                             <MenuItem value="shopee">Shopee</MenuItem>
-                            <MenuItem value="tokopedia">Tokopedia</MenuItem>
+                            <MenuItem value="tokopedia">...</MenuItem>
                         </Select>
                     </Grid>
 
