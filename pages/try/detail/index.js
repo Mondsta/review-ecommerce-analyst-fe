@@ -9,9 +9,13 @@ import {
     Paper,
     Typography,
     Divider,
+    ToggleButton,
+    ToggleButtonGroup,
+    IconButton,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { ArrowDownward, ArrowUpward } from "@mui/icons-material"; // Ikon sorting
 import API from "../../../services/try/tryAPI";
 
 const DetailPage = ({ anomalyData }) => {
@@ -20,6 +24,10 @@ const DetailPage = ({ anomalyData }) => {
     const [anomaliesData, setAnomaliesData] = useState(
         anomalyData?.anomalies || [],
     );
+    const [filteredAnomalies, setFilteredAnomalies] = useState([]);
+    const [filterType, setFilterType] = useState("all");
+    const [sortDirection, setSortDirection] = useState("desc"); // Default descending
+    const [totalFilteredReviews, setTotalFilteredReviews] = useState(0); // Total filtered reviews
     const [productData, setProductData] = useState({
         product_image: "",
         product_name: "",
@@ -30,13 +38,16 @@ const DetailPage = ({ anomalyData }) => {
         confusion_matrix: [],
         ...anomalyData,
     });
-    const [isDialogOpen, setIsDialogOpen] = useState(false); // State for additional info dialog
+    const [isDialogOpen, setIsDialogOpen] = useState(false); // Dialog for analysis report
+    const [isLoadingDialogOpen, setIsLoadingDialogOpen] = useState(isLoading); // Dialog for Please Wait
 
     const mountAnalyzeAnomalyReview = async (payload) => {
         setIsLoading(true);
+        setIsLoadingDialogOpen(true);
         try {
             const { data } = await API.analyzeAnomalyReview(payload);
             setAnomaliesData(data.anomalies || []);
+            setFilteredAnomalies(data.anomalies || []); // Update filtered data
             setProductData({
                 product_image: data.product_image,
                 product_name: data.product_name,
@@ -50,6 +61,7 @@ const DetailPage = ({ anomalyData }) => {
             console.error("Error analyzing reviews:", error);
         } finally {
             setIsLoading(false);
+            setIsLoadingDialogOpen(false);
         }
     };
 
@@ -63,9 +75,35 @@ const DetailPage = ({ anomalyData }) => {
                 mountAnalyzeAnomalyReview(parsedPayload);
             } else {
                 setIsLoading(false);
+                setIsLoadingDialogOpen(false);
             }
         }
     }, [anomalyData]);
+
+    // Update filtered anomalies based on selected filter type
+    useEffect(() => {
+        let filtered = anomaliesData;
+
+        if (filterType === "positive") {
+            filtered = anomaliesData.filter((anomaly) => anomaly.rating >= 4);
+        } else if (filterType === "negative") {
+            filtered = anomaliesData.filter((anomaly) => anomaly.rating < 4);
+        }
+
+        setFilteredAnomalies(filtered);
+        setTotalFilteredReviews(filtered.length); // Update total reviews count
+    }, [filterType, anomaliesData]);
+
+    // Handle sorting by anomaly score
+    const handleSortByScore = () => {
+        const sorted = [...filteredAnomalies].sort((a, b) =>
+            sortDirection === "asc"
+                ? a.anomaly_score - b.anomaly_score
+                : b.anomaly_score - a.anomaly_score,
+        );
+        setFilteredAnomalies(sorted);
+        setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    };
 
     return (
         <Box
@@ -83,6 +121,7 @@ const DetailPage = ({ anomalyData }) => {
                 Anomaly Review Detail
             </Typography>
 
+            {/* Product Detail Section */}
             <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3, mb: 4 }}>
                 <Grid container spacing={2} alignItems="center">
                     <Grid item xs={12} md={3}>
@@ -94,7 +133,6 @@ const DetailPage = ({ anomalyData }) => {
                                 boxShadow: 2,
                             }}
                         >
-                            {/* eslint-disable-next-line */}
                             <img
                                 src={`https://cf.shopee.co.id/file/${productData.product_image}`}
                                 alt="Product"
@@ -133,17 +171,45 @@ const DetailPage = ({ anomalyData }) => {
                 </Grid>
             </Paper>
 
-            <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3 }}>
+            {/* Filter & Sorting Section */}
+            <Paper sx={{ p: 3, borderRadius: 4, boxShadow: 3, mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                    Anomaly Analysis Results
+                    Filter Anomalies
                 </Typography>
+                <ToggleButtonGroup
+                    value={filterType}
+                    exclusive
+                    onChange={(e, newFilterType) =>
+                        setFilterType(newFilterType || "all")
+                    }
+                    sx={{ mb: 3 }}
+                >
+                    <ToggleButton value="all">All</ToggleButton>
+                    <ToggleButton value="positive">Positive</ToggleButton>
+                    <ToggleButton value="negative">Negative</ToggleButton>
+                </ToggleButtonGroup>
 
-                {anomaliesData.length === 0 ? (
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Typography sx={{ flexGrow: 1 }}>
+                        Total Reviews: <b>{totalFilteredReviews}</b>
+                    </Typography>
+                    <IconButton onClick={handleSortByScore}>
+                        {sortDirection === "asc" ? (
+                            <ArrowUpward />
+                        ) : (
+                            <ArrowDownward />
+                        )}
+                    </IconButton>
+                    <Typography>Sort by Score</Typography>
+                </Box>
+
+                {/* Anomalies List */}
+                {filteredAnomalies.length === 0 ? (
                     <Typography color="textSecondary">
                         No anomalies detected.
                     </Typography>
                 ) : (
-                    anomaliesData.map((anomaly, index) => (
+                    filteredAnomalies.map((anomaly, index) => (
                         <Box key={index} sx={{ mb: 3 }}>
                             <Paper
                                 sx={{
@@ -204,6 +270,7 @@ const DetailPage = ({ anomalyData }) => {
                 )}
             </Paper>
 
+            {/* Dialog: Analysis Report */}
             <Dialog
                 open={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
@@ -243,26 +310,25 @@ const DetailPage = ({ anomalyData }) => {
                 </DialogActions>
             </Dialog>
 
-            <Dialog fullWidth open={isLoading}>
+            {/* Dialog: Please Wait */}
+            <Dialog open={isLoadingDialogOpen}>
                 <DialogContent>
-                    <Grid container justifyContent="center" alignItems="center">
-                        <Grid item xs={12} sx={{ textAlign: "center" }}>
-                            <Typography
-                                sx={{ mb: 1, mt: 1, fontWeight: "bold" }}
-                            >
-                                Please Wait
-                            </Typography>
-                            <CircularProgress color="primary" />
-                        </Grid>
-                    </Grid>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            p: 3,
+                        }}
+                    >
+                        <CircularProgress />
+                        <Typography sx={{ mt: 2 }}>Please Wait...</Typography>
+                    </Box>
                 </DialogContent>
             </Dialog>
         </Box>
     );
-};
-
-DetailPage.getInitialProps = async () => {
-    return { anomalyData: null };
 };
 
 export default DetailPage;

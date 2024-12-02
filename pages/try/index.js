@@ -17,6 +17,7 @@ import {
     CircularProgress,
     Select,
     MenuItem,
+    Pagination,
 } from "@mui/material";
 import PrivateRoutes from "../../utils/privateRoutes";
 import useAlert from "../../utils/alert";
@@ -39,6 +40,8 @@ const Try = () => {
     const [isAnalyzed, setIsAnalyzed] = useState(false);
 
     const [filterType, setFilterType] = useState("shopee");
+    const [currentPage, setCurrentPage] = useState(1);
+    const reviewsPerPage = 100;
 
     // POST
     async function mountGetScrapeDataShopee() {
@@ -77,7 +80,7 @@ const Try = () => {
 
     async function mountGetScrapeDataTokopedia() {
         if (!isValidUrl(reviewUrl, "tokopedia")) {
-            setUrlError("Link tidak valid. Silakan masukkan link Tokopedia.");
+            setUrlError("Link tidak valid. Silakan masukkan link valid.");
             showAlert("error", "Link tidak valid");
             setReviews([]);
             return;
@@ -193,6 +196,13 @@ const Try = () => {
         document.body.removeChild(link);
     };
 
+    const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+
+    const currentReviews = reviews.slice(
+        (currentPage - 1) * reviewsPerPage,
+        currentPage * reviewsPerPage,
+    );
+
     // Update validation to check the filter type
     const isValidUrl = (url, type) => {
         const shopeeRegex = /^https:\/\/shopee\.co\.id\/.+$/;
@@ -215,6 +225,10 @@ const Try = () => {
 
     const handleDetectAnomalyClick = async () => {
         await mountAnalyzeAnomalyReview();
+    };
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
     };
 
     const clearReviewData = () => {
@@ -584,23 +598,42 @@ const Try = () => {
                             <TableHead>
                                 <TableRow>
                                     <TableCell>
-                                        <b>Username</b>
+                                        <Typography
+                                            variant="subtitle2"
+                                            fontWeight="bold"
+                                        >
+                                            Username
+                                        </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <b>Review</b>
+                                        <Typography
+                                            variant="subtitle2"
+                                            fontWeight="bold"
+                                        >
+                                            Review
+                                        </Typography>
                                     </TableCell>
                                     <TableCell align="center">
-                                        <b>Rating</b>
+                                        <Typography
+                                            variant="subtitle2"
+                                            fontWeight="bold"
+                                        >
+                                            Rating
+                                        </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        <b>Date</b>
+                                        <Typography
+                                            variant="subtitle2"
+                                            fontWeight="bold"
+                                        >
+                                            Date
+                                        </Typography>
                                     </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {Array.isArray(reviews) &&
-                                reviews.length > 0 ? (
-                                    reviews.map((review, index) => (
+                                {currentReviews.length > 0 ? (
+                                    currentReviews.map((review, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
                                                 {review.username}
@@ -635,6 +668,30 @@ const Try = () => {
                             </TableBody>
                         </Table>
                     </TableContainer>
+
+                    {/* Pagination */}
+                    {reviews.length > reviewsPerPage && (
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                mt: 2,
+                            }}
+                        >
+                            <Pagination
+                                count={totalPages}
+                                page={currentPage}
+                                onChange={handlePageChange}
+                                color={
+                                    filterType === "shopee"
+                                        ? "warning"
+                                        : "success"
+                                }
+                                shape="rounded"
+                            />
+                        </Box>
+                    )}
                 </Box>
 
                 {/* Modal Loading */}
