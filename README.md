@@ -11,7 +11,7 @@ Sebelum menjalankan aplikasi, pastikan Anda memiliki hal-hal berikut:
 
 ## Environment Setup
 
-Sebelum memulai, buat file **`.env.local`** di direktori utama project dan tambahkan konfigurasi berikut:
+Sebelum memulai atau running menggunakan command yarn dev di terminal visual studio code, buat file **`.env.local`** di direktori utama project dan tambahkan konfigurasi berikut:
 
 ```bash
 NEXT_PUBLIC_NODE_ENV=development || production
