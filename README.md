@@ -18,3 +18,6 @@ NEXT_PUBLIC_NODE_ENV=development || production
 APP_VERSION=$npm_package_version
 NEXT_PUBLIC_BASE_API_URL=http://localhost:5000
 PORT=8000
+```
+
+Wajib untuk melakukan running File Backend Python terlebih dahulu kemudian baru running FrontEnd nya menggunakan command "yarn dev" di terminal visual studio code
